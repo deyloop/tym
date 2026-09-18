@@ -5,6 +5,8 @@
   import TaskItem from "./presentation/components/TaskItem.svelte";
   import { Input } from "$lib/components/ui/input";
   import { Button } from "$lib/components/ui/button";
+  import { theme } from "$lib/theme.svelte";
+  import { Sun, Moon, Monitor } from "@lucide/svelte";
 
   // Dependency Injection setup
   const dataSource = new TaskLocalDataSource();
@@ -16,6 +18,8 @@
   let dropTargetId = $state<string | null>(null);
   let dropPosition = $state<'before' | 'after' | null>(null);
   let listEl = $state<HTMLUListElement | null>(null);
+
+  $effect(() => theme.init());
 
   function clearDragState() {
     dragId = null;
@@ -129,9 +133,26 @@
   class="min-h-screen bg-background text-foreground flex justify-center p-6 sm:p-12"
 >
   <div class="w-full max-w-md space-y-6">
-    <header class="space-y-1">
-      <h1 class="text-3xl font-bold tracking-tight">Tym</h1>
-      <p class="text-sm text-muted-foreground">Local-first Task Management</p>
+    <header class="flex items-start justify-between gap-4">
+      <div class="space-y-1">
+        <h1 class="text-3xl font-bold tracking-tight">Tym</h1>
+        <p class="text-sm text-muted-foreground">Local-first Task Management</p>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        onclick={() => theme.cycle()}
+        aria-label={`Theme: ${theme.current}, activate to switch to ${theme.next()}`}
+        title={`Theme: ${theme.current} (click for ${theme.next()})`}
+      >
+        {#if theme.current === "light"}
+          <Sun />
+        {:else if theme.current === "dark"}
+          <Moon />
+        {:else}
+          <Monitor />
+        {/if}
+      </Button>
     </header>
 
     <form onsubmit={handleCreate} class="flex gap-2">
