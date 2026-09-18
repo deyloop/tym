@@ -63,4 +63,26 @@ export class TaskRepositoryImpl implements TaskRepository {
     tasks = tasks.filter((t) => t.id !== id);
     await this.localDataSource.saveTasks(tasks);
   }
+
+  async reorderTasks(orderedIds: string[]): Promise<Task[]> {
+    const tasks = await this.localDataSource.getTasks();
+    const byId = new Map(tasks.map((t) => [t.id, t]));
+    const reordered: Task[] = [];
+
+    for (const id of orderedIds) {
+      const task = byId.get(id);
+      if (task) {
+        reordered.push(task);
+        byId.delete(id);
+      }
+    }
+
+    // Append any tasks missing from orderedIds (defensive: concurrent creates)
+    for (const task of tasks) {
+      if (byId.has(task.id)) reordered.push(task);
+    }
+
+    await this.localDataSource.saveTasks(reordered);
+    return reordered;
+  }
 }

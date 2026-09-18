@@ -7,5 +7,6 @@ export interface TaskRepository {
   updateTaskParent(id: string, newParent: string | null): Promise<Task>;
   toggleTaskCompletion(id: string): Promise<Task>;
   deleteTask(id: string): Promise<void>;
+  reorderTasks(orderedIds: string[]): Promise<Task[]>;
 }
 
