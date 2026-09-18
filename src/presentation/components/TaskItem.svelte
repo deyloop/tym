@@ -1,8 +1,11 @@
 <script lang="ts">
   import type { Task } from "../../domain/models/task.model";
+
   import { Checkbox } from "$lib/components/ui/checkbox";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
+
+  import { ListPlus, Pencil, X, Play } from "@lucide/svelte";
 
   interface Props {
     task: Task;
@@ -66,21 +69,43 @@
   <div class="flex items-center gap-1">
     {#if !isEditing}
       <Button
+        aria-label="Edit {task.title}"
+        title="Edit"
         variant="ghost"
         size="sm"
         class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
         onclick={() => (isEditing = true)}
       >
-        ✎
+        <Pencil />
       </Button>
     {/if}
     <Button
+      aria-label="Start Task: {task.title}"
+      title="Start"
+      variant="ghost"
+      size="sm"
+      class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+    >
+      <Play />
+    </Button>
+    <Button
+      aria-label="Add subtask to {task.title}"
+      title="Add Subtask"
+      variant="ghost"
+      size="sm"
+      class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+    >
+      <ListPlus />
+    </Button>
+    <Button
+      aria-label="Delete {task.title}"
+      title="Delete"
       variant="ghost"
       size="sm"
       class="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
       onclick={() => onDelete(task.id)}
     >
-      ✕
+      <X />
     </Button>
   </div>
 </li>

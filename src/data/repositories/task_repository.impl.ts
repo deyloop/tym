@@ -35,7 +35,7 @@ export class TaskRepositoryImpl implements TaskRepository {
     return updatedTask;
   }
 
-  async updateTaskParent(id: string, newParent: string): Promise<Task> {
+  async updateTaskParent(id: string, newParent: string | null): Promise<Task> {
     const tasks = await this.localDataSource.getTasks();
     const taskIndex = tasks.findIndex((t) => t.id == id);
     if (taskIndex === -1) throw new Error('Task not found');
@@ -55,7 +55,7 @@ export class TaskRepositoryImpl implements TaskRepository {
     tasks[taskIndex].completed = !tasks[taskIndex].completed;
 
     await this.localDataSource.saveTasks(tasks);
-    return updatedTask;
+    return tasks[taskIndex];
   }
 
   async deleteTask(id: string): Promise<void> {
