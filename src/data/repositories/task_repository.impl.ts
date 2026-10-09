@@ -1,4 +1,4 @@
-import type { Task } from '../../domain/models/task.model';
+import { descendantIds, type Task } from '../../domain/models/task.model';
 import type { TaskRepository } from '../../domain/repositories/task.repository';
 import type { TaskLocalDataSource } from '../datasources/task_local.datasource';
 
@@ -9,11 +9,11 @@ export class TaskRepositoryImpl implements TaskRepository {
     return this.localDataSource.getTasks();
   }
 
-  async createTask(title: string): Promise<Task> {
+  async createTask(title: string, parent: string | null = null): Promise<Task> {
     const tasks = await this.localDataSource.getTasks();
     const newTask: Task = {
       id: crypto.randomUUID(),
-      parent: null,
+      parent,
       title: title.trim(),
       completed: false,
       createdAt: Date.now(),
@@ -60,7 +60,8 @@ export class TaskRepositoryImpl implements TaskRepository {
 
   async deleteTask(id: string): Promise<void> {
     let tasks = await this.localDataSource.getTasks();
-    tasks = tasks.filter((t) => t.id !== id);
+    const removed = new Set([id, ...descendantIds(tasks, id)]);
+    tasks = tasks.filter((t) => !removed.has(t.id));
     await this.localDataSource.saveTasks(tasks);
   }
 

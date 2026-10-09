@@ -19,13 +19,17 @@
     onUpdateTitle: (id: string, title: string) => void;
     onToggle: (id: string) => void;
     onDelete: (id: string) => void;
+    onAddSubtask: (id: string) => void;
     onMoveUp: (id: string) => void;
     onMoveDown: (id: string) => void;
     isFirst: boolean;
     isLast: boolean;
     position: number;
     setSize: number;
+    depth: number;
+    parentTitle?: string;
     isDragging: boolean;
+    isDropTarget: boolean;
     onDragStart: (id: string) => void;
     onDragOver: (e: DragEvent, id: string) => void;
     onDrop: (id: string) => void;
@@ -37,13 +41,17 @@
     onUpdateTitle,
     onToggle,
     onDelete,
+    onAddSubtask,
     onMoveUp,
     onMoveDown,
     isFirst,
     isLast,
     position,
     setSize,
+    depth,
+    parentTitle,
     isDragging,
+    isDropTarget,
     onDragStart,
     onDragOver,
     onDrop,
@@ -92,10 +100,13 @@
   onkeydown={handleItemKeydown}
   aria-posinset={position}
   aria-setsize={setSize}
-  aria-label="{position} of {setSize}: {task.title}"
+  aria-label="{position} of {setSize}: {task.title}{parentTitle
+    ? `, subtask of ${parentTitle}`
+    : ''}"
+  style:margin-left="{depth * 1.5}rem"
   class="flex items-center gap-2 p-3 bg-card border border-border rounded-lg shadow-sm transition-all hover:border-border/80 {isDragging
     ? 'opacity-50'
-    : ''}"
+    : ''} {isDropTarget ? 'ring-2 ring-primary' : ''}"
 >
   <span
     class="cursor-grab text-muted-foreground hover:text-foreground touch-none"
@@ -175,6 +186,7 @@
       variant="ghost"
       size="sm"
       class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+      onclick={() => onAddSubtask(task.id)}
     >
       <ListPlus />
     </Button>
