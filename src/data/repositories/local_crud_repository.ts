@@ -11,7 +11,7 @@ export class LocalCrudRepository<T extends { id: string }> implements CrudReposi
   async getAll(): Promise<T[]> {
     const items = await this.dataSource.load();
     if (items) return items;
-    await this.dataSource.save(this.defaults);
+    await this.dataSource.seed(this.defaults);
     return [...this.defaults];
   }
 
