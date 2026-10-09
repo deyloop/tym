@@ -8,7 +8,7 @@ export class WorkflowRepositoryImpl implements WorkflowRepository {
   async getWorkflow(): Promise<Workflow> {
     const workflow = await this.dataSource.load();
     if (workflow) return workflow;
-    await this.dataSource.save(DEFAULT_WORKFLOW);
+    await this.dataSource.seed(DEFAULT_WORKFLOW);
     return structuredClone(DEFAULT_WORKFLOW);
   }
 

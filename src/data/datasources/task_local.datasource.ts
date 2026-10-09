@@ -1,15 +1,16 @@
 import type { Task } from '../../domain/models/task.model';
-
-const STORAGE_KEY = 'tym_tasks_v1';
+import type { LocalStore } from '../sync/local_store';
 
 export class TaskLocalDataSource {
+  constructor(private store: LocalStore) {}
+
   async getTasks(): Promise<Task[]> {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? migrateTasks(JSON.parse(data)) : [];
+    const data = this.store.read<any[]>('tasks');
+    return data ? migrateTasks(data) : [];
   }
 
   async saveTasks(tasks: Task[]): Promise<void>  {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    this.store.write('tasks', tasks);
   }
 }
 

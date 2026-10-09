@@ -2,12 +2,14 @@
   import { Button } from "$lib/components/ui/button";
   import { theme } from "$lib/theme.svelte";
   import { router } from "$lib/router.svelte";
-  import { Sun, Moon, Monitor, ListTodo, Users, Tags, Workflow } from "@lucide/svelte";
+  import { Sun, Moon, Monitor, ListTodo, Users, Tags, Workflow, RefreshCw } from "@lucide/svelte";
   import TasksPage from "./presentation/pages/TasksPage.svelte";
   import TaskDetailPage from "./presentation/pages/TaskDetailPage.svelte";
   import PeoplePage from "./presentation/pages/PeoplePage.svelte";
   import TaskTypesPage from "./presentation/pages/TaskTypesPage.svelte";
   import WorkflowPage from "./presentation/pages/WorkflowPage.svelte";
+  import SyncPage from "./presentation/pages/SyncPage.svelte";
+  import SyncIndicator from "./presentation/components/SyncIndicator.svelte";
   import Notices from "./presentation/components/Notices.svelte";
   import { taskBloc } from "./presentation/app_context";
 
@@ -24,6 +26,7 @@
     { path: "/people", label: "People", icon: Users },
     { path: "/types", label: "Task Types", icon: Tags },
     { path: "/workflow", label: "Statuses & Workflow", icon: Workflow },
+    { path: "/sync", label: "Sync", icon: RefreshCw },
   ];
 
   const taskDetailId = $derived(router.path.match(/^\/tasks\/([^/]+)$/)?.[1] ?? null);
@@ -36,7 +39,7 @@
 
 <div class="min-h-screen bg-background text-foreground md:flex">
   <aside
-    class="md:w-60 md:shrink-0 md:h-screen md:sticky md:top-0 border-b md:border-b-0 md:border-r border-sidebar-border bg-sidebar text-sidebar-foreground"
+    class="relative md:w-60 md:shrink-0 md:h-screen md:sticky md:top-0 border-b md:border-b-0 md:border-r border-sidebar-border bg-sidebar text-sidebar-foreground"
   >
     <div class="flex items-center justify-between gap-2 px-4 py-3 md:py-5">
       <a href="#/" class="space-y-0.5">
@@ -74,6 +77,9 @@
         </a>
       {/each}
     </nav>
+    <div class="hidden md:block absolute bottom-0 inset-x-0 p-2 border-t border-sidebar-border">
+      <SyncIndicator />
+    </div>
   </aside>
 
   <main class="flex-1 min-w-0 px-4 py-6 sm:px-8 sm:py-10">
@@ -88,6 +94,8 @@
         <TaskTypesPage />
       {:else if router.path.startsWith("/workflow")}
         <WorkflowPage />
+      {:else if router.path.startsWith("/sync")}
+        <SyncPage />
       {:else}
         <TasksPage />
       {/if}
