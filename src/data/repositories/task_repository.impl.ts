@@ -1,5 +1,5 @@
-import { descendantIds, type Task } from '../../domain/models/task.model';
-import type { TaskRepository } from '../../domain/repositories/task.repository';
+import { descendantIds, type Task, type TaskChanges, type TaskEvent, type TaskField } from '../../domain/models/task.model';
+import type { NewTask, TaskRepository } from '../../domain/repositories/task.repository';
 import type { TaskLocalDataSource } from '../datasources/task_local.datasource';
 
 export class TaskRepositoryImpl implements TaskRepository {
@@ -9,53 +9,55 @@ export class TaskRepositoryImpl implements TaskRepository {
     return this.localDataSource.getTasks();
   }
 
-  async createTask(title: string, parent: string | null = null): Promise<Task> {
+  async createTask(input: NewTask): Promise<Task> {
     const tasks = await this.localDataSource.getTasks();
+    const now = Date.now();
     const newTask: Task = {
       id: crypto.randomUUID(),
-      parent,
-      title: title.trim(),
-      completed: false,
-      createdAt: Date.now(),
+      number: Math.max(0, ...tasks.map((t) => t.number)) + 1,
+      parent: input.parent,
+      title: input.title.trim(),
+      description: '',
+      typeId: null,
+      statusId: input.statusId,
+      reportedBy: null,
+      owner: null,
+      delegatedTo: null,
+      reportingTo: null,
+      reviewer: null,
+      createdAt: now,
+      dueDate: null,
+      plannedStart: null,
+      plannedEnd: null,
+      devCompletionDate: null,
+      reviewDate: null,
+      estimateHours: null,
+      spentHours: null,
+      history: [{ at: now, kind: 'created' }],
     };
     tasks.push(newTask);
     await this.localDataSource.saveTasks(tasks);
     return newTask;
   }
 
-  async updateTaskTitle(id: string, newTitle: string): Promise<Task> {
-    const tasks = await this.localDataSource.getTasks();
-    const taskIndex = tasks.findIndex((t) => t.id == id);
-    if (taskIndex === -1) throw new Error('Task not found');
-
-    const updatedTask = {...tasks[taskIndex], title: newTitle.trim()};
-    tasks[taskIndex] = updatedTask;
-
-    await this.localDataSource.saveTasks(tasks);
-    return updatedTask;
+  async updateTask(id: string, changes: TaskChanges): Promise<Task> {
+    return this.modify(id, (task) => {
+      const at = Date.now();
+      const events: TaskEvent[] = [];
+      for (const [field, value] of Object.entries(changes) as [TaskField, unknown][]) {
+        if (task[field] !== value) {
+          events.push({ at, kind: 'change', field, from: task[field], to: value });
+        }
+      }
+      return { ...task, ...changes, history: [...task.history, ...events] };
+    });
   }
 
-  async updateTaskParent(id: string, newParent: string | null): Promise<Task> {
-    const tasks = await this.localDataSource.getTasks();
-    const taskIndex = tasks.findIndex((t) => t.id == id);
-    if (taskIndex === -1) throw new Error('Task not found');
-
-    const updatedTask = {...tasks[taskIndex], parent: newParent};
-    tasks[taskIndex] = updatedTask;
-
-    await this.localDataSource.saveTasks(tasks);
-    return updatedTask;
-  }
-
-  async toggleTaskCompletion(id: string): Promise<Task> {
-    const tasks = await this.localDataSource.getTasks();
-    const taskIndex = tasks.findIndex((t) => t.id == id);
-    if (taskIndex === -1) throw new Error('Task not found');
-
-    tasks[taskIndex].completed = !tasks[taskIndex].completed;
-
-    await this.localDataSource.saveTasks(tasks);
-    return tasks[taskIndex];
+  async addNote(id: string, text: string): Promise<Task> {
+    return this.modify(id, (task) => ({
+      ...task,
+      history: [...task.history, { at: Date.now(), kind: 'note', text: text.trim() }],
+    }));
   }
 
   async deleteTask(id: string): Promise<void> {
@@ -85,5 +87,17 @@ export class TaskRepositoryImpl implements TaskRepository {
 
     await this.localDataSource.saveTasks(reordered);
     return reordered;
+  }
+
+  private async modify(id: string, fn: (task: Task) => Task): Promise<Task> {
+    const tasks = await this.localDataSource.getTasks();
+    const taskIndex = tasks.findIndex((t) => t.id == id);
+    if (taskIndex === -1) throw new Error('Task not found');
+
+    const updatedTask = fn(tasks[taskIndex]);
+    tasks[taskIndex] = updatedTask;
+
+    await this.localDataSource.saveTasks(tasks);
+    return updatedTask;
   }
 }
